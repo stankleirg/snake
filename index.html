@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Snake Game</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #000428, #004e92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      font-family: 'Courier New', monospace;
+      animation: glow 1.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 5px #ff0000, 0 0 10px #ff0000, 0 0 15px #ff0000;
+      }
+      to {
+        text-shadow: 0 0 10px #ff9900, 0 0 20px #ff9900, 0 0 30px #ff9900;
+      }
+    }
+
+    canvas {
+      border: 2px solid white;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      background-color: #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>Snake Game</h1>
+  <canvas width="400" height="400" id="game"></canvas>
+  <script>
+    var canvas = document.getElementById('game');
+    var context = canvas.getContext('2d');
+
+    var grid = 16;
+    var count = 0;
+
+    var snake = {
+      x: 160,
+      y: 160,
+      dx: grid,
+      dy: 0,
+      cells: [],
+      maxCells: 4
+    };
+
+    var apple = {
+      x: 320,
+      y: 320
+    };
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function loop() {
+      requestAnimationFrame(loop);
+
+      if (++count < 4) {
+        return;
+      }
+
+      count = 0;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      snake.x += snake.dx;
+      snake.y += snake.dy;
+
+      if (snake.x < 0) {
+        snake.x = canvas.width - grid;
+      } else if (snake.x >= canvas.width) {
+        snake.x = 0;
+      }
+
+      if (snake.y < 0) {
+        snake.y = canvas.height - grid;
+      } else if (snake.y >= canvas.height) {
+        snake.y = 0;
+      }
+
+      snake.cells.unshift({ x: snake.x, y: snake.y });
+
+      if (snake.cells.length > snake.maxCells) {
+        snake.cells.pop();
+      }
+
+      context.fillStyle = 'red';
+      context.fillRect(apple.x, apple.y, grid - 1, grid - 1);
+
+      snake.cells.forEach(function (cell, index) {
+        if (index === 0) {
+          // Draw snake head
+          context.fillStyle = 'lime';
+          context.fillRect(cell.x, cell.y, grid - 1, grid - 1);
+
+          // Draw eyes
+          context.fillStyle = 'white';
+          context.beginPath();
+          context.arc(cell.x + 4, cell.y + 4, 2, 0, Math.PI * 2); // Left eye
+          context.arc(cell.x + 12, cell.y + 4, 2, 0, Math.PI * 2); // Right eye
+          context.fill();
+
+          // Draw pupils
+          context.fillStyle = 'black';
+          context.beginPath();
+          context.arc(cell.x + 4, cell.y + 4, 1, 0, Math.PI * 2); // Left pupil
+          context.arc(cell.x + 12, cell.y + 4, 1, 0, Math.PI * 2); // Right pupil
+          context.fill();
+        } else {
+          // Draw snake body with gradient effect
+          var gradient = context.createLinearGradient(cell.x, cell.y, cell.x + grid, cell.y + grid);
+          gradient.addColorStop(0, 'green');
+          gradient.addColorStop(1, 'lime');
+          context.fillStyle = gradient;
+          context.fillRect(cell.x, cell.y, grid - 1, grid - 1);
+        }
+
+        if (cell.x === apple.x && cell.y === apple.y) {
+          snake.maxCells++;
+          apple.x = getRandomInt(0, 25) * grid;
+          apple.y = getRandomInt(0, 25) * grid;
+        }
+
+        for (var i = index + 1; i < snake.cells.length; i++) {
+          if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+            snake.x = 160;
+            snake.y = 160;
+            snake.cells = [];
+            snake.maxCells = 4;
+            snake.dx = grid;
+            snake.dy = 0;
+
+            apple.x = getRandomInt(0, 25) * grid;
+            apple.y = getRandomInt(0, 25) * grid;
+          }
+        }
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.which === 37 && snake.dx === 0) {
+        snake.dx = -grid;
+        snake.dy = 0;
+      } else if (e.which === 38 && snake.dy === 0) {
+        snake.dy = -grid;
+        snake.dx = 0;
+      } else if (e.which === 39 && snake.dx === 0) {
+        snake.dx = grid;
+        snake.dy = 0;
+      } else if (e.which === 40 && snake.dy === 0) {
+        snake.dy = grid;
+        snake.dx = 0;
+      }
+    });
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
